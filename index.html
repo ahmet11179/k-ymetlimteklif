@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Romantik Sürpriz & Şiirler</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 100%);
+      margin: 0; padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: #4a0033;
+      user-select: none;
+      overflow-x: hidden;
+    }
+    .container {
+      background: white;
+      border-radius: 15px;
+      max-width: 480px;
+      width: 90%;
+      padding: 30px 25px;
+      box-shadow: 0 0 30px rgba(255, 105, 180, 0.5);
+      text-align: center;
+      position: relative;
+      z-index: 10;
+    }
+    h2 {
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: #880e4f;
+    }
+    p {
+      font-size: 18px;
+      margin-bottom: 20px;
+      line-height: 1.4;
+      font-style: italic;
+      color: #6a1b4d;
+    }
+    .intro {
+      font-weight: 600;
+      margin-bottom: 15px;
+      font-size: 16px;
+      color: #ad1457;
+    }
+    button {
+      background: #d81b60;
+      color: white;
+      border: none;
+      border-radius: 30px;
+      padding: 12px 24px;
+      margin: 10px 8px;
+      font-size: 16px;
+      cursor: pointer;
+      box-shadow: 0 5px 10px rgba(216, 27, 96, 0.4);
+      transition: background-color 0.3s ease, transform 0.3s ease;
+      min-width: 120px;
+    }
+    button:hover:not(:disabled) {
+      background: #880e4f;
+      transform: scale(1.05);
+    }
+    button:disabled {
+      background: #eee;
+      color: #999;
+      cursor: default;
+      box-shadow: none;
+      transform: none;
+    }
+    #responseMsg {
+      margin-top: 15px;
+      font-size: 17px;
+      font-weight: 600;
+      color: #ad1457;
+      min-height: 28px;
+      min-width: 300px;
+      transition: opacity 0.5s ease;
+    }
+    /* Confetti & Heart styles */
+    .confetti, .heart {
+      position: fixed;
+      pointer-events: none;
+      opacity: 0.8;
+      font-size: 24px;
+      user-select: none;
+      z-index: 9999;
+      will-change: transform, opacity;
+    }
+    /* Fall animation with rotation and vertical + horizontal movement */
+    @keyframes fall {
+      0% {
+        transform: translateY(-30px) translateX(0) rotate(0deg) scale(1);
+        opacity: 1;
+      }
+      50% {
+        transform: translateY(50vh) translateX(15px) rotate(180deg) scale(1.1);
+        opacity: 0.8;
+      }
+      100% {
+        transform: translateY(100vh) translateX(0) rotate(360deg) scale(0.8);
+        opacity: 0;
+      }
+    }
+    /* Sway animation for gentle horizontal sway */
+    @keyframes sway {
+      0%, 100% { transform: translateX(0); }
+      50% { transform: translateX(15px); }
+    }
+    /* Mesaj stili */
+    #loveMessage {
+      font-size: 22px;
+      font-weight: 700;
+      color: #d81b60;
+      margin-top: 15px;
+      opacity: 0;
+      transition: opacity 1s ease;
+      min-height: 30px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container" id="app">
+    <!-- Step 1: Nasilsin -->
+    <div id="step1">
+      <h2>Merhaba, nasılsın bugün?</h2>
+      <button onclick="replyFeeling('mutlu')">Mutluyum 😊</button>
+      <button onclick="replyFeeling('hüzünlü')">Biraz hüzünlüyüm 😔</button>
+      <button onclick="replyFeeling('meraklı')">Meraklıyım 🤔</button>
+    </div>
+
+    <!-- Step 2: Cevap ve Başla Şiirlere -->
+    <div id="step2" style="display:none;">
+      <p id="feelingResponse"></p>
+      <button onclick="startPoems()">Şiirlerle devam edelim mi? 💌</button>
+    </div>
+
+    <!-- Step 3: Şiir Göster -->
+    <div id="stepPoem" style="display:none;">
+      <p class="intro" id="poemIntro"></p>
+      <p id="poemText" style="font-weight:700; font-size:20px; white-space: pre-line;"></p>
+      <div>
+        <button id="btnContinue" onclick="nextPoem()">Devam Et</button>
+        <button id="btnReact" onclick="reactPoem()">İnanılmaz!</button>
+      </div>
+      <p id="responseMsg"></p>
+    </div>
+
+    <!-- Step 4: Hazır mısın? -->
+    <div id="stepReady" style="display:none;">
+      <p style="font-size:20px;">Hazır mısın, güzel bir sürprize? 💫</p>
+      <button onclick="readyResponse(true)">Hazırım 😍</button>
+      <button onclick="readyResponse(false)">Henüz değilim, merak ediyorum 🙈</button>
+      <p id="waitMsg" style="font-style: italic; color:#ad1457; min-height: 30px; margin-top:10px;"></p>
+    </div>
+
+    <!-- Step 5: Çıkma Teklifi -->
+    <div id="stepProposal" style="display:none;">
+      <h2>Benimle bir yola var mısın? 💞</h2>
+      <button id="yesBtn" style="transform: scale(1);" onclick="sayYes()">Evet 💘</button>
+      <button id="noBtn" onclick="sayNo()">Hayır 🙃</button>
+      <p id="noResponseMsg" style="margin-top:15px; font-style: italic; color:#ad1457; min-height:30px;"></p>
+      <p id="loveMessage"></p>
+    </div>
+
+    <!-- Step 6: Final -->
+    <div id="stepFinal" style="display:none;">
+      <h2>💖 Harika! Artık kalpler bir oldu! 💖</h2>
+      <p>Bu anı birlikte paylaştığımız için çok mutluyum.<br>Seni çok seviyorum... 💞</p>
+    </div>
+  </div>
+
+<script>
+  const poems = [
+    {intro:"Bu kelimeler, sadece sana dokunsun diye yazıldı... 💌", text:"Gözlerin bir yıldız gibi,\nGeceye ışık olur bana.", reactBtn:"Bayıldım!", response:"Senin gibi özel biri için yazdım."},
+    {intro:"Kalbimden çıkan en gerçek cümleler... 💌", text:"Sensiz geçen her an,\nEksik bir hayat gibi.", reactBtn:"Çok içten olmuş!", response:"Beğenmene çok sevindim."},
+    {intro:"Sana özel bir mısra... 💌", text:"Sana yazılmış bu satırlar,\nKalbimden dökülen notalardır.", reactBtn:"Mükemmel!", response:"Kalbimle yazdım, beğendiğine sevindim."},
+    {intro:"Yüreğimden dökülen nağmeler... 💌", text:"İçimde çiçek açtıran o tebessümüne hayranım.", reactBtn:"Harika!", response:"Senin tebessümüne değer."},
+    {intro:"Sadece senin için yazıldı... 💌", text:"Seninle her şey daha anlamlı,\nDaha güzel...", reactBtn:"İnanılmaz!", response:"Bu duygular senin için."},
+    {intro:"Kalbimde özel bir yerin var... 💌", text:"Her gün seni düşünmek,\nBeni mutlu eder.", reactBtn:"Büyüleyici!", response:"Her satırda seni hissettim."},
+    {intro:"Bir rüyanın en tatlı hali... 💌", text:"Seninle geçen zaman,\nBir ömre bedel.", reactBtn:"Muhteşem!", response:"Zaman seninle anlamlı."},
+    {intro:"Kalemim sana aşıktır... 💌", text:"Sözcüklerim seni anlatır,\nSevgiyle dolu.", reactBtn:"Çok güzel!", response:"Senin için yazmak bir zevk."},
+    {intro:"En derin hislerimle... 💌", text:"Kalbimde saklı sırlar,\nSadece sana ait.", reactBtn:"Efsane!", response:"Sırlarımız paylaştıkça güzel."},
+    {intro:"Bir yürekten diğerine... 💌", text:"Sevginle ısınır,\nSoğuk gecelerim.", reactBtn:"Süper!", response:"Senin sevginle doluyum."},
+    {intro:"Sana özel bir armağan... 💌", text:"Gözlerin parıldar,\nBeni büyüler.", reactBtn:"Mükemmel!", response:"Gözlerinle dünyam aydınlanır."},
+    {intro:"Sevgiyle yazılmış kelimeler... 💌", text:"Her satırda sen varsın,\nKalbimde.", reactBtn:"Harikulade!", response:"Seninle her satır anlamlı."},
+    {intro:"Sadece sana... 💌", text:"Kalbim çarpar,\nSeninle yaşarım.", reactBtn:"Bayıldım!", response:"Kalbim seninle atıyor."},
+    {intro:"Gönlümden dökülen dizeler... 💌", text:"Seninle her an,\nBir şiir gibi.", reactBtn:"Muhteşem!", response:"Her anımız şiir gibi."},
+    {intro:"Sevgi dolu mısralar... 💌", text:"Birlikte yürürüz,\nEl ele sonsuza.", reactBtn:"Çok içten!", response:"El ele güzeliz."},
+    {intro:"Sana özel hislerle... 💌", text:"Kalbim sana ait,\nBunu bil.", reactBtn:"Harika!", response:"Senin için her şeyim."},
+    {intro:"Sonsuz aşkla yazıldı... 💌", text:"Seni düşündükçe,\nGülümserim.", reactBtn:"İnanılmaz!", response:"Sen benim neşemsin."},
+    {intro:"Kalbimdeki en güzel melodiler... 💌", text:"Seninle hayat,\nBir şarkı gibi.", reactBtn:"Efsane!", response:"Şarkımız hiç bitmesin."},
+    {intro:"Gözlerimdeki ışıltı... 💌", text:"Sana her baktığımda,\nAşkla dolarım.", reactBtn:"Bayıldım!", response:"Bakışların ilham kaynağım."},
+    {intro:"Sana özel son bir mısra... 💌", text:"Kalplerimiz birleşir,\nBir sonsuzlukta.", reactBtn:"Harikulade!", response:"Birlikte sonsuza..."}
+  ];
+
+  let poemIndex = 0;
+  let yesScale = 1;
+  let noScale = 1;
+  let noClickCount = 0;
+  let waitingTimeout = null;
+  let confettiInterval = null;
+
+  function replyFeeling(mood){
+    let respText;
+    if(mood === 'mutlu') respText = "Ne güzel! Enerjin kalbime işledi. 💖";
+    else if(mood === 'hüzünlü') respText = "Üzülme, yanında olamasam da kalbim seninle. 💞";
+    else respText = "Merak güzel, yeni keşifler için açığız birlikte. 🌟";
+
+    document.getElementById('step1').style.display = 'none';
+    const step2 = document.getElementById('step2');
+    step2.style.display = 'block';
+    document.getElementById('feelingResponse').innerText = respText;
+  }
+
+  function startPoems(){
+    document.getElementById('step2').style.display = 'none';
+    document.getElementById('stepPoem').style.display = 'block';
+    showPoem();
+  }
+
+  function showPoem(){
+    const poem = poems[poemIndex];
+    document.getElementById('poemIntro').innerText = poem.intro;
+    document.getElementById('poemText').innerText = poem.text;
+    document.getElementById('btnContinue').innerText = "Devam Et";
+    document.getElementById('btnReact').innerText = poem.reactBtn;
+    document.getElementById('responseMsg').innerText = "";
+}
+
+function nextPoem() {
+  if (poemIndex < poems.length - 1) {
+    poemIndex++;
+    showPoem();
+  } else {
+    document.getElementById('stepPoem').style.display = 'none';
+    document.getElementById('stepReady').style.display = 'block';
+  }
+}
+
+function reactPoem() {
+  const poem = poems[poemIndex];
+  document.getElementById('responseMsg').innerText = poem.response;
+}
+
+function readyResponse(isReady) {
+  if (!isReady) {
+    const waitMsg = document.getElementById('waitMsg');
+    waitMsg.innerText = "Tamam, beklerim ben buradayım 😊 Biraz bekleyelim...";
+    document.querySelectorAll('#stepReady button').forEach(b => b.disabled = true);
+
+    if (waitingTimeout) clearTimeout(waitingTimeout);
+    waitingTimeout = setTimeout(() => {
+      waitMsg.innerText = "";
+      document.querySelectorAll('#stepReady button').forEach(b => b.disabled = false);
+    }, 5000);
+    return;
+  }
+  if (waitingTimeout) clearTimeout(waitingTimeout);
+  document.getElementById('waitMsg').innerText = "";
+  document.getElementById('stepReady').style.display = 'none';
+  document.getElementById('stepProposal').style.display = 'block';
+}
+
+function sayNo() {
+  noClickCount++;
+  yesScale += 0.3;
+  noScale = Math.max(0.6, noScale - 0.25);
+
+  const yesBtn = document.getElementById('yesBtn');
+  const noBtn = document.getElementById('noBtn');
+  const noResp = document.getElementById('noResponseMsg');
+
+  yesBtn.style.transform = `scale(${yesScale})`;
+  noBtn.style.transform = `scale(${noScale})`;
+
+  if (noClickCount >= 3) {
+    noBtn.style.display = 'none';
+    noResp.innerText = "Üzülme, senin mutluluğun her şeyden önemli. Buradayım hep. 💜";
+  } else {
+    const messages = [
+      "Anlıyorum, zamanla her şey daha güzel olabilir... 🌱",
+      "Sabırla beklemek bazen en büyük güçtür. 💫",
+      "Kalbim hep yanında, ne zaman istersen buradayım. 💖"
+    ];
+    noResp.innerText = messages[noClickCount - 1];
+  }
+}
+
+function sayYes() {
+  document.getElementById('yesBtn').disabled = true;
+  document.getElementById('noBtn').disabled = true;
+
+  startConfettiRain();
+
+  // 2 saniye sonra mesaj göster
+  setTimeout(() => {
+    document.getElementById('loveMessage').style.opacity = 1;
+    document.getElementById('loveMessage').innerText = "Seni seviyorum! 💖";
+  }, 2000);
+
+  // 10 saniye sonra konfeti durdur, sayfayı final yap
+  setTimeout(() => {
+    stopConfettiRain();
+    document.getElementById('stepProposal').style.display = 'none';
+    document.getElementById('stepFinal').style.display = 'block';
+  }, 10000);
+}
+
+function startConfettiRain() {
+  confettiInterval = setInterval(() => {
+    triggerConfetti();
+  }, 300);
+}
+
+function stopConfettiRain() {
+  clearInterval(confettiInterval);
+}
+
+function triggerConfetti() {
+  const emojis = ['❤️', '💖', '🌹', '🎉', '✨', '🦋', '💫', '💕', '🌸', '🎈'];
+  const count = 8; // Her seferinde 8 adet uçur
+
+  for (let i = 0; i < count; i++) {
+    const el = document.createElement('div');
+    const symbol = emojis[Math.floor(Math.random() * emojis.length)];
+    el.innerText = symbol;
+
+    el.className = ['❤️', '💖', '🌹', '💕'].includes(symbol) ? 'heart' : 'confetti';
+
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.top = -50 - Math.random() * 150 + 'px';
+
+    const size = 14 + Math.random() * 20;
+    el.style.fontSize = size + 'px';
+
+    const duration = 5 + Math.random() * 4;
+    el.style.animationDuration = duration + 's';
+
+    el.style.animationTimingFunction = 'ease-in-out';
+
+    el.style.animationDelay = (Math.random() * 2) + 's';
+
+    el.style.animationName = 'fall, sway';
+    el.style.animationDuration = `${duration}s, ${2 + Math.random() * 3}s`;
+    el.style.animationIterationCount = '1, infinite';
+    el.style.animationTimingFunction = 'linear, ease-in-out';
+
+    document.body.appendChild(el);
+
+    setTimeout(() => el.remove(), duration * 1000);
+  }
+}
+</script>
+
+</body>
+</html>
