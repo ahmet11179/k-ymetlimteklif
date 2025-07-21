@@ -16,9 +16,3 @@ Bu proje, romantik ve etkileyici bir şiirli çıkma teklifi deneyimi sunar. Say
 | Şiir Aşaması | Teklif Aşaması | Kabul Edildiğinde |
 |-------------|----------------|--------------------|
 | 📖          | 💍             | 🎉❤️🌹             |
-
-## Kurulum
-
-1. Bu projeyi indir veya klonla:
-   ```bash
-   git clone https://github.com/kullaniciadi/sevgi-teklifi.git
